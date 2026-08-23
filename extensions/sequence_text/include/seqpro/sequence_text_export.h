@@ -1,0 +1,16 @@
+#ifndef SEQPRO_SEQUENCE_TEXT_INCLUDE_SEQPRO_SEQUENCE_TEXT_EXPORT_H_
+#define SEQPRO_SEQUENCE_TEXT_INCLUDE_SEQPRO_SEQUENCE_TEXT_EXPORT_H_
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(SEQPRO_BUILDING_SEQUENCE_TEXT_LIBRARY)
+#define SEQPRO_SEQUENCE_TEXT_EXPORT __declspec(dllexport)
+#else
+#define SEQPRO_SEQUENCE_TEXT_EXPORT __declspec(dllimport)
+#endif
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#define SEQPRO_SEQUENCE_TEXT_EXPORT __attribute__((visibility("default")))
+#else
+#define SEQPRO_SEQUENCE_TEXT_EXPORT
+#endif
+
+#endif  // SEQPRO_SEQUENCE_TEXT_INCLUDE_SEQPRO_SEQUENCE_TEXT_EXPORT_H_

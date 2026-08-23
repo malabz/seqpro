@@ -10,8 +10,8 @@
 int main() {
   static_assert(sizeof(seqpro::SequencePosition) == sizeof(std::uint64_t));
   static_assert(seqpro::kVersionMajor == 0);
-  static_assert(seqpro::kVersionMinor == 1);
+  static_assert(seqpro::kVersionMinor == 2);
   static_assert(seqpro::kVersionPatch == 0);
   const std::string_view library_name = "SeqPro";
-  return library_name.empty() || seqpro::kVersionString != "0.1.0" ? 1 : 0;
+  return library_name.empty() || seqpro::kVersionString != "0.2.0" ? 1 : 0;
 }

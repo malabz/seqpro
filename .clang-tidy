@@ -5,7 +5,8 @@ Checks: >
   portability-*,
   readability-identifier-naming
 WarningsAsErrors: ''
-HeaderFilterRegex: '^(include/seqpro|src)/'
+HeaderFilterRegex: >-
+  (^|.*/)(include/seqpro|src|extensions/sequence_text/(include/seqpro|src))/
 CheckOptions:
   readability-identifier-naming.ClassCase: CamelCase
   readability-identifier-naming.StructCase: CamelCase
@@ -18,14 +19,28 @@ CheckOptions:
     ^(begin|end|empty|get|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
   readability-identifier-naming.MethodCase: CamelCase
   readability-identifier-naming.MethodIgnoredRegexp: >-
-    ^(begin|end|empty|get|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
+    ^(begin|end|empty|get|indexed_fasta|is_finalized|layout_generation|sequence_order|text_size|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
   readability-identifier-naming.VariableCase: lower_case
   readability-identifier-naming.ParameterCase: lower_case
   readability-identifier-naming.PrivateMemberCase: lower_case
   readability-identifier-naming.PrivateMemberSuffix: _
   readability-identifier-naming.EnumConstantCase: CamelCase
   readability-identifier-naming.EnumConstantPrefix: k
-  readability-identifier-naming.ConstantCase: CamelCase
-  readability-identifier-naming.ConstantPrefix: k
+  readability-identifier-naming.GlobalConstantCase: CamelCase
+  readability-identifier-naming.GlobalConstantPrefix: k
+  readability-identifier-naming.GlobalConstexprVariableCase: CamelCase
+  readability-identifier-naming.GlobalConstexprVariablePrefix: k
+  readability-identifier-naming.ClassConstantCase: CamelCase
+  readability-identifier-naming.ClassConstantPrefix: k
+  readability-identifier-naming.ClassConstexprCase: CamelCase
+  readability-identifier-naming.ClassConstexprPrefix: k
+  readability-identifier-naming.StaticConstantCase: CamelCase
+  readability-identifier-naming.StaticConstantPrefix: k
+  readability-identifier-naming.StaticConstexprVariableCase: CamelCase
+  readability-identifier-naming.StaticConstexprVariablePrefix: k
+  readability-identifier-naming.LocalConstantCase: lower_case
+  readability-identifier-naming.LocalConstexprVariableCase: lower_case
   readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
   readability-identifier-naming.MacroDefinitionPrefix: SEQPRO_
+  readability-identifier-naming.MacroDefinitionIgnoredRegexp: >-
+    ^[A-Z][A-Z0-9_]*_H_$

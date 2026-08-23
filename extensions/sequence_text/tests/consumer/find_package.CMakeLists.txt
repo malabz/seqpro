@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.20)
+project(SeqProSequenceTextFindPackageConsumer LANGUAGES CXX)
+
+if(NOT DEFINED SEQPRO_SEQUENCE_TEXT_DIR)
+  message(FATAL_ERROR "SEQPRO_SEQUENCE_TEXT_DIR is required")
+endif()
+
+find_package(SeqPro 0.2 CONFIG REQUIRED COMPONENTS SequenceText)
+if(NOT TARGET SeqPro::seqpro OR NOT TARGET SeqPro::sequence_text)
+  message(FATAL_ERROR "The installed SequenceText component targets are unavailable")
+endif()
+
+add_executable(
+  seqpro-sequence-text-consumer
+  ${SEQPRO_SEQUENCE_TEXT_DIR}/tests/consumer/main.cc
+)
+target_link_libraries(seqpro-sequence-text-consumer PRIVATE SeqPro::sequence_text)
+target_compile_features(seqpro-sequence-text-consumer PRIVATE cxx_std_17)
+
+add_executable(
+  seqpro-sequence-text-consumer-cxx20
+  ${SEQPRO_SEQUENCE_TEXT_DIR}/tests/consumer/main.cc
+)
+target_link_libraries(seqpro-sequence-text-consumer-cxx20 PRIVATE SeqPro::sequence_text)
+target_compile_features(seqpro-sequence-text-consumer-cxx20 PRIVATE cxx_std_20)

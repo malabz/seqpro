@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(SeqPro VERSION 0.1.0 LANGUAGES C CXX)
+project(SeqPro VERSION 0.2.0 LANGUAGES C CXX)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  message(FATAL_ERROR "SeqPro v0.1.0 supports 64-bit Linux and WSL only")
+  message(FATAL_ERROR "SeqPro v0.2.0 supports 64-bit Linux and WSL only")
 endif()
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-  message(FATAL_ERROR "SeqPro v0.1.0 requires a 64-bit platform")
+  message(FATAL_ERROR "SeqPro v0.2.0 requires a 64-bit platform")
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
   message(FATAL_ERROR "SeqPro requires GCC 9 or newer")
@@ -26,6 +26,7 @@ endif()
 option(SEQPRO_BUILD_TOOLS "Build the seqpro-index command-line tool" ${SEQPRO_TOOLS_DEFAULT})
 option(SEQPRO_BUILD_EXAMPLES "Build SeqPro examples" OFF)
 option(SEQPRO_BUILD_BENCHMARKS "Build SeqPro benchmarks" OFF)
+option(SEQPRO_BUILD_SEQUENCE_TEXT "Build the optional SequenceText component" OFF)
 option(SEQPRO_ENABLE_CLANG_TIDY "Run clang-tidy while compiling SeqPro" OFF)
 
 include(CTest)
@@ -70,6 +71,10 @@ target_compile_options(seqpro PRIVATE
 if(SEQPRO_ENABLE_CLANG_TIDY)
   find_program(SEQPRO_CLANG_TIDY_EXECUTABLE NAMES clang-tidy REQUIRED)
   set_target_properties(seqpro PROPERTIES CXX_CLANG_TIDY "${SEQPRO_CLANG_TIDY_EXECUTABLE}")
+endif()
+
+if(SEQPRO_BUILD_SEQUENCE_TEXT)
+  add_subdirectory(extensions/sequence_text)
 endif()
 
 if(SEQPRO_BUILD_TOOLS)
@@ -138,6 +143,18 @@ if(BUILD_TESTING)
         -DSEQPRO_GENERATOR=${CMAKE_GENERATOR}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_install_consumer.cmake
     )
+
+    if(NOT SEQPRO_BUILD_SEQUENCE_TEXT)
+      add_test(
+        NAME seqpro.consumer.missing_sequence_text_component
+        COMMAND ${CMAKE_COMMAND}
+          -DSEQPRO_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+          -DSEQPRO_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
+          -DSEQPRO_TEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/consumer-missing-sequence-text
+          -DSEQPRO_GENERATOR=${CMAKE_GENERATOR}
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_missing_sequence_text_component.cmake
+      )
+    endif()
 
     if(SEQPRO_BUILD_TOOLS)
       find_program(SEQPRO_SAMTOOLS_EXECUTABLE NAMES samtools)
