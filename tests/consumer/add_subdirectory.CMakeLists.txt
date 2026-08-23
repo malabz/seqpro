@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.20)
+project(SeqProAddSubdirectoryConsumer LANGUAGES CXX)
+
+if(NOT DEFINED SEQPRO_SOURCE_DIR)
+  message(FATAL_ERROR "SEQPRO_SOURCE_DIR is required")
+endif()
+
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(SEQPRO_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+add_subdirectory(${SEQPRO_SOURCE_DIR} seqpro-build)
+
+add_executable(seqpro-consumer ${SEQPRO_SOURCE_DIR}/tests/consumer/main.cc)
+target_link_libraries(seqpro-consumer PRIVATE SeqPro::seqpro)
+target_compile_features(seqpro-consumer PRIVATE cxx_std_17)
+
+add_executable(seqpro-consumer-cxx20 ${SEQPRO_SOURCE_DIR}/tests/consumer/main.cc)
+target_link_libraries(seqpro-consumer-cxx20 PRIVATE SeqPro::seqpro)
+target_compile_features(seqpro-consumer-cxx20 PRIVATE cxx_std_20)

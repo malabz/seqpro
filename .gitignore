@@ -1,0 +1,6 @@
+/build/
+/install/
+*.fai
+*.seqpro.meta
+
+plan/SeqPro_library_development_plan.md

@@ -1,0 +1,31 @@
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  readability-identifier-naming
+WarningsAsErrors: ''
+HeaderFilterRegex: '^(include/seqpro|src)/'
+CheckOptions:
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.TypeAliasCase: CamelCase
+  readability-identifier-naming.TypeAliasIgnoredRegexp: >-
+    ^(iterator_category|value_type|difference_type|pointer|reference)$
+  readability-identifier-naming.FunctionCase: CamelCase
+  readability-identifier-naming.FunctionIgnoredRegexp: >-
+    ^(begin|end|empty|get|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
+  readability-identifier-naming.MethodCase: CamelCase
+  readability-identifier-naming.MethodIgnoredRegexp: >-
+    ^(begin|end|empty|get|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberSuffix: _
+  readability-identifier-naming.EnumConstantCase: CamelCase
+  readability-identifier-naming.EnumConstantPrefix: k
+  readability-identifier-naming.ConstantCase: CamelCase
+  readability-identifier-naming.ConstantPrefix: k
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+  readability-identifier-naming.MacroDefinitionPrefix: SEQPRO_
