@@ -28,7 +28,7 @@ only to `SeqPro::seqpro`.
 - Samtools 1.24 for FAI interoperability tests.
 - Doxygen 1.9+ for API documentation.
 - clang-format and clang-tidy for style and static analysis.
-- actionlint and ShellCheck for workflow and release-script validation.
+- ShellCheck for local shell and release-script validation.
 - Clang libFuzzer plus AddressSanitizer and UndefinedBehaviorSanitizer for fuzz targets.
 - GCC ThreadSanitizer and `-fanalyzer` for additional analysis.
 - libabigail (`abidw` and `abidiff`) for the 0.2.x ABI gate.

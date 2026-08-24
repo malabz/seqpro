@@ -1,7 +1,5 @@
 # SeqPro
 
-[![Quality](https://github.com/malabz/seqpro/actions/workflows/quality.yml/badge.svg)](https://github.com/malabz/seqpro/actions/workflows/quality.yml)
-
 [简体中文](README.zh-CN.md)
 
 SeqPro is a C++17 library for indexed random access to uncompressed FASTA files. The core library

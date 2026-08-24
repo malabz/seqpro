@@ -45,7 +45,6 @@ cmake -S . -B build-docs \
 cmake --build build-docs --target seqpro-docs
 
 shellcheck scripts/*.sh
-actionlint -no-color
 ```
 
 When clang-tidy is available:
@@ -61,8 +60,7 @@ cmake -S . -B build-tidy \
 cmake --build build-tidy --parallel
 ```
 
-Fuzzers are Clang-only, top-level-only, non-installed targets. They are disabled in normal builds
-and pull requests:
+Fuzzers are Clang-only, top-level-only, non-installed targets. They are disabled in normal builds:
 
 ```bash
 cmake -S . -B build-fuzz \
@@ -117,8 +115,8 @@ inputs and in-memory fuzz entry points. Coordinate changes should include a simp
 round-trip properties. Concurrency changes must retain immutable, lock-free const-query phases and
 run under the appropriate thread sanitizer.
 
-Do not make ordinary CI depend on multi-gigabyte genomes or hardware-specific throughput
-thresholds. Microbenchmarks report regressions; correctness tests determine acceptance.
+Do not make the default local test suite depend on multi-gigabyte genomes or hardware-specific
+throughput thresholds. Microbenchmarks report regressions; correctness tests determine acceptance.
 
 ## Commits and releases
 

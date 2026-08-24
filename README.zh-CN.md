@@ -1,7 +1,5 @@
 # SeqPro
 
-[![质量检查](https://github.com/malabz/seqpro/actions/workflows/quality.yml/badge.svg)](https://github.com/malabz/seqpro/actions/workflows/quality.yml)
-
 [English](README.md)
 
 SeqPro 是一个使用 C++17 编写的未压缩 FASTA 索引随机访问库。核心库可以创建或读取标准

@@ -248,12 +248,12 @@ RaMAx 兼容层或自动迁移。
 - 共享库采用独立 version script、`--no-undefined`、RELRO/NOW 和 stack protector；核心与扩展
   的符号边界、跨 DSO `SeqProError` 捕获及 libabigail v0.2.0 ABI 基线均已验证；
 - 本地最终验证已覆盖 GCC/Clang 构建、全量静态与共享 CTest、ASan/UBSan、TSan、clang-tidy、
-  GCC analyzer、严格 Doxygen、clang-format、actionlint、ShellCheck 和四个 fuzzer 的短烟雾
-  运行；沙箱限制使本地 LSan 使用 `detect_leaks=0`，CI 仍固定使用 `detect_leaks=1`；
-- GitHub Actions 已提供质量、手动 fuzz 和发布候选工作流；发布候选工作流会执行每个 fuzzer
-  至少 300 秒，并从明确 commit 生成和验证可复现源码包及 API 文档资产；
+  GCC analyzer、严格 Doxygen、clang-format、ShellCheck 和四个 fuzzer 的短烟雾运行；完整
+  LSan、每个 fuzzer 至少 300 秒以及可复现源码包/API 文档资产均保留为本地发布候选门禁；
+- 仓库托管平台的自动化任务已按项目策略移除；质量、fuzz、ABI 和发布候选能力继续由
+  CMake、CTest、本地分析工具及 `scripts/` 中的可复现源码包脚本提供；
 - 示例和 benchmark 目标已编译，但 benchmark 和大型真实基因组实验没有执行。
 
 当前没有执行 commit、push、版本标签、GitHub Release 或任何下游项目修改。由于源码包脚本
-按设计拒绝脏工作树，完整的 300 秒 fuzz 和 commit 归档演练需要在用户授权提交后由手动发布
-候选工作流执行；正式标签和 Release 仍需单独授权。
+按设计拒绝脏工作树，完整的 300 秒 fuzz 和 commit 归档演练需要在用户授权提交后从本地执行；
+正式标签和 Release 仍需单独授权。
