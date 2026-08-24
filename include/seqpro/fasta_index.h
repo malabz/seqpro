@@ -122,10 +122,41 @@ struct FastaIndexValidationReport {
 };
 
 /// Creates, reuses, adopts, or explicitly rebuilds a standard five-column FAI.
+///
+/// The FASTA is scanned without materializing complete sequences. Existing current SeqPro indexes
+/// are reused, and a valid external standard FAI can be adopted by adding metadata. Publication is
+/// atomic at file granularity.
+///
+/// @param fasta_path Path to an uncompressed FASTA file.
+/// @param build_options Destination, replacement, and metadata policy.
+/// @return Paths, counts, and the action performed. Returned paths are owned values.
+/// @throws SeqProError with kInvalidArgument for contradictory options, kIoError for file-system
+/// failures, kInvalidFasta for malformed FASTA, kInvalidFastaIndex or kStaleFastaIndex when an
+/// existing index cannot be reused without force_rebuild, kDuplicateSequenceName for ambiguous
+/// record names, kIntegerOverflow for unrepresentable sizes, or kUnsupportedFileFormat for
+/// compressed input.
+/// @note This function writes index files and must be externally serialized with other writers for
+/// the same target paths.
+/// @par Complexity
+/// Linear in FASTA file bytes when scanning or hashing; reuse is linear in the number of FAI
+/// records plus validation work.
 SEQPRO_EXPORT FastaIndexBuildReport BuildFastaIndex(
     const std::filesystem::path& fasta_path, const FastaIndexBuildOptions& build_options = {});
 
 /// Validates an existing FASTA and FAI without modifying either file.
+///
+/// @param fasta_path Path to the uncompressed FASTA file described by the FAI.
+/// @param fasta_index_path FAI path; an empty path selects `<fasta_path>.fai`.
+/// @param verification_mode Fast metadata/physical validation or a full FASTA fingerprint.
+/// @return Validation provenance, strength, counts, and fingerprint state. The report owns its
+/// values.
+/// @throws SeqProError with kIoError for file-system failures, kInvalidFastaIndex for malformed or
+/// physically inconsistent FAI data, kStaleFastaIndex for mismatched metadata, kIntegerOverflow
+/// for unrepresentable fields, or kUnsupportedFileFormat for unsupported input.
+/// @note This function is read-only. Independent validations may run concurrently if the files are
+/// not modified.
+/// @par Complexity
+/// Linear in FAI record count in kFast mode; kFull additionally reads all FASTA bytes.
 SEQPRO_EXPORT FastaIndexValidationReport ValidateFastaIndex(
     const std::filesystem::path& fasta_path, const std::filesystem::path& fasta_index_path = {},
     IndexVerificationMode verification_mode = IndexVerificationMode::kFast);

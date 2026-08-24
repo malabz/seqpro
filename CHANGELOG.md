@@ -19,6 +19,8 @@ earlier 0.1.0 name referred only to an internal development milestone and was ne
   coordinate conversion, tagged base/separator/terminator locations, generation-bound text
   exclusion, byte lookup, exact-buffer copy, streaming output, and explicit materialization.
 - Strict English API documentation plus synchronized Chinese user and contract documentation.
+- Task-oriented English and Chinese getting-started, Core API, and SequenceText API guides, with
+  buildable C++17 examples, smoke tests, relative-link validation, and public-symbol coverage gates.
 - CI matrices, sanitizers, static analysis, Samtools interoperability, manual fuzz targets, ABI
   checks, shared-library symbol audits, and reproducible source release-candidate tooling.
 

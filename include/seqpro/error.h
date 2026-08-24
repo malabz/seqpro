@@ -37,11 +37,20 @@ enum class ErrorCode : std::uint8_t {
 class SEQPRO_EXPORT SeqProError : public std::runtime_error {
  public:
   /// Constructs an error with a stable category and human-readable context.
+  ///
+  /// @param error_code Machine-readable failure category.
+  /// @param message Human-readable diagnostic containing operation and file or coordinate context.
   SeqProError(ErrorCode error_code, std::string message);
   /// Owns the exported RTTI and vtable key function in the core shared library.
   ~SeqProError() override;
 
   /// Returns the stable machine-readable error category.
+  ///
+  /// @return Category supplied to the constructor. The value remains valid for the exception's
+  /// lifetime.
+  /// @note This accessor is thread-safe for concurrent reads of the same exception object.
+  /// @par Complexity
+  /// Constant time.
   ErrorCode error_code() const noexcept;
 
  private:

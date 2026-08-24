@@ -220,8 +220,15 @@ benchmark 不会被 CTest 自动运行，也不承诺脱离硬件环境的绝对
 
 ## 文档
 
+- [快速上手](docs/zh-CN/getting_started.md)：完整的 C++17 与 CMake 十分钟入门流程
+- [Core API 使用手册](docs/zh-CN/core_api_guide.md)：索引、打开、查找、五种读取方式、错误、
+  生命周期与并发
+- [SequenceText API 使用手册](docs/zh-CN/sequence_text_api_guide.md)：可选文本布局、排除区间、
+  坐标转换、generation 与后缀索引迭代流程
 - [FASTA、FAI 与 metadata 契约](docs/zh-CN/fai_contract.md)
 - [SequenceText 字节布局与坐标契约](docs/zh-CN/sequence_text_layout.md)
+- 本地 Doxygen HTML：使用 `-DSEQPRO_BUILD_DOCUMENTATION=ON` 配置，然后打开
+  `build/api-docs/html/index.html`
 - [贡献与兼容性政策](CONTRIBUTING.md)
 - [安全政策](SECURITY.md)
 - [发布候选与正式发布流程](docs/releasing.md)

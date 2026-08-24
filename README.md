@@ -232,8 +232,15 @@ The benchmark targets are never run by CTest and make no hardware-independent th
 
 ## Documentation
 
+- [Getting started](docs/getting_started.md): a complete 10-minute C++17 and CMake walkthrough
+- [Core API guide](docs/core_api_guide.md): indexing, opening, lookup, five reading modes, errors,
+  lifetimes, and concurrency
+- [SequenceText API guide](docs/sequence_text_api_guide.md): optional text layout, exclusions,
+  coordinate conversion, generations, and suffix-index iteration
 - [FASTA, FAI, and metadata contract](docs/fai_contract.md)
 - [SequenceText byte-layout and coordinate contract](docs/sequence_text_layout.md)
+- Local Doxygen HTML: configure with `-DSEQPRO_BUILD_DOCUMENTATION=ON`, then open
+  `build/api-docs/html/index.html`
 - [Contributing and compatibility policy](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 - [Release-candidate and release procedure](docs/releasing.md)

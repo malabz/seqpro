@@ -108,6 +108,41 @@ if(SEQPRO_BUILD_EXAMPLES)
     PRIVATE SeqPro::sequence_text
   )
   seqpro_configure_owned_cxx_target(seqpro-sequence-text-example)
+
+  add_executable(
+    seqpro-sequence-text-coordinates-example
+    examples/sequence_text_coordinates.cc
+  )
+  target_link_libraries(
+    seqpro-sequence-text-coordinates-example
+    PRIVATE SeqPro::sequence_text
+  )
+  seqpro_configure_owned_cxx_target(
+    seqpro-sequence-text-coordinates-example
+  )
+
+  if(BUILD_TESTING)
+    add_test(
+      NAME seqpro.sequence_text.example.workflow
+      COMMAND ${CMAKE_COMMAND}
+        -DSEQPRO_EXAMPLE_EXECUTABLE=$<TARGET_FILE:seqpro-sequence-text-example>
+        -DSEQPRO_EXAMPLE_MODE=sequence_text_workflow
+        -DSEQPRO_FIXTURE_FASTA=${PROJECT_SOURCE_DIR}/tests/fixtures/interop.fa
+        -DSEQPRO_FIXTURE_FAI=${PROJECT_SOURCE_DIR}/tests/fixtures/interop.fa.fai.expected
+        -DSEQPRO_TEST_ROOT=${PROJECT_BINARY_DIR}/example-sequence-text-workflow
+        -P ${PROJECT_SOURCE_DIR}/tests/run_example_smoke.cmake
+    )
+    add_test(
+      NAME seqpro.sequence_text.example.coordinates
+      COMMAND ${CMAKE_COMMAND}
+        -DSEQPRO_EXAMPLE_EXECUTABLE=$<TARGET_FILE:seqpro-sequence-text-coordinates-example>
+        -DSEQPRO_EXAMPLE_MODE=sequence_text_coordinates
+        -DSEQPRO_FIXTURE_FASTA=${PROJECT_SOURCE_DIR}/tests/fixtures/interop.fa
+        -DSEQPRO_FIXTURE_FAI=${PROJECT_SOURCE_DIR}/tests/fixtures/interop.fa.fai.expected
+        -DSEQPRO_TEST_ROOT=${PROJECT_BINARY_DIR}/example-sequence-text-coordinates
+        -P ${PROJECT_SOURCE_DIR}/tests/run_example_smoke.cmake
+    )
+  endif()
 endif()
 
 if(SEQPRO_BUILD_BENCHMARKS)

@@ -147,6 +147,13 @@ if(SEQPRO_BUILD_DOCUMENTATION)
   set(SEQPRO_DOXYGEN_INPUTS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/seqpro ${SEQPRO_GENERATED_INCLUDE_DIR}/seqpro"
   )
+  string(APPEND SEQPRO_DOXYGEN_INPUTS
+    " ${CMAKE_CURRENT_SOURCE_DIR}/docs/getting_started.md"
+    " ${CMAKE_CURRENT_SOURCE_DIR}/docs/core_api_guide.md"
+    " ${CMAKE_CURRENT_SOURCE_DIR}/docs/sequence_text_api_guide.md"
+    " ${CMAKE_CURRENT_SOURCE_DIR}/docs/fai_contract.md"
+    " ${CMAKE_CURRENT_SOURCE_DIR}/docs/sequence_text_layout.md"
+  )
   if(SEQPRO_BUILD_SEQUENCE_TEXT)
     string(APPEND SEQPRO_DOXYGEN_INPUTS
       " ${CMAKE_CURRENT_SOURCE_DIR}/extensions/sequence_text/include/seqpro"
@@ -176,9 +183,25 @@ if(SEQPRO_BUILD_TOOLS)
 endif()
 
 if(SEQPRO_BUILD_EXAMPLES)
+  find_package(Threads REQUIRED)
   add_executable(seqpro-basic-example examples/basic_usage.cc)
   target_link_libraries(seqpro-basic-example PRIVATE SeqPro::seqpro)
   seqpro_configure_owned_cxx_target(seqpro-basic-example)
+
+  add_executable(seqpro-index-management-example examples/index_management.cc)
+  target_link_libraries(seqpro-index-management-example PRIVATE SeqPro::seqpro)
+  seqpro_configure_owned_cxx_target(seqpro-index-management-example)
+
+  add_executable(seqpro-read-modes-example examples/sequence_read_modes.cc)
+  target_link_libraries(seqpro-read-modes-example PRIVATE SeqPro::seqpro)
+  seqpro_configure_owned_cxx_target(seqpro-read-modes-example)
+
+  add_executable(seqpro-concurrent-reading-example examples/concurrent_reading.cc)
+  target_link_libraries(
+    seqpro-concurrent-reading-example
+    PRIVATE SeqPro::seqpro Threads::Threads
+  )
+  seqpro_configure_owned_cxx_target(seqpro-concurrent-reading-example)
 endif()
 
 if(SEQPRO_BUILD_BENCHMARKS)
@@ -200,11 +223,42 @@ if(BUILD_TESTING)
   endif()
   seqpro_configure_owned_cxx_target(seqpro-tests)
   add_test(NAME seqpro.unit COMMAND seqpro-tests)
+
+  if(SEQPRO_BUILD_EXAMPLES)
+    foreach(example_mode IN ITEMS basic index read concurrent)
+      if(example_mode STREQUAL "basic")
+        set(example_target seqpro-basic-example)
+      elseif(example_mode STREQUAL "index")
+        set(example_target seqpro-index-management-example)
+      elseif(example_mode STREQUAL "read")
+        set(example_target seqpro-read-modes-example)
+      else()
+        set(example_target seqpro-concurrent-reading-example)
+      endif()
+      add_test(
+        NAME seqpro.example.${example_mode}
+        COMMAND ${CMAKE_COMMAND}
+          -DSEQPRO_EXAMPLE_EXECUTABLE=$<TARGET_FILE:${example_target}>
+          -DSEQPRO_EXAMPLE_MODE=${example_mode}
+          -DSEQPRO_FIXTURE_FASTA=${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/interop.fa
+          -DSEQPRO_FIXTURE_FAI=${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/interop.fa.fai.expected
+          -DSEQPRO_TEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/example-${example_mode}
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_example_smoke.cmake
+      )
+    endforeach()
+  endif()
+
   add_test(
     NAME seqpro.source_conventions
     COMMAND ${CMAKE_COMMAND}
       -DSEQPRO_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
       -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CheckSourceConventions.cmake
+  )
+  add_test(
+    NAME seqpro.documentation
+    COMMAND ${CMAKE_COMMAND}
+      -DSEQPRO_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CheckDocumentation.cmake
   )
 
   if(SEQPRO_IS_TOP_LEVEL)
@@ -362,10 +416,25 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/SeqPro
 )
 install(FILES
+  docs/getting_started.md
+  docs/core_api_guide.md
+  docs/sequence_text_api_guide.md
   docs/fai_contract.md
   docs/sequence_text_layout.md
   docs/releasing.md
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/SeqPro/docs
+)
+install(FILES
+  examples/basic_usage.cc
+  examples/index_management.cc
+  examples/sequence_read_modes.cc
+  examples/concurrent_reading.cc
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/SeqPro/examples
+)
+install(FILES
+  extensions/sequence_text/examples/sequence_text_usage.cc
+  extensions/sequence_text/examples/sequence_text_coordinates.cc
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/SeqPro/extensions/sequence_text/examples
 )
 install(
   DIRECTORY docs/zh-CN/
