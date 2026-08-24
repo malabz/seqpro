@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.20)
+project(SeqProVersionCompatibilityConsumer LANGUAGES CXX)
+
+if(NOT DEFINED SEQPRO_FIND_ARGUMENTS)
+  message(FATAL_ERROR "SEQPRO_FIND_ARGUMENTS is required")
+endif()
+
+find_package(SeqPro ${SEQPRO_FIND_ARGUMENTS} CONFIG REQUIRED)
+if(NOT SeqPro_VERSION STREQUAL "0.2.0")
+  message(FATAL_ERROR "SeqPro_VERSION is '${SeqPro_VERSION}', expected '0.2.0'")
+endif()
+if(NOT TARGET SeqPro::seqpro)
+  message(FATAL_ERROR "The compatible package did not define SeqPro::seqpro")
+endif()

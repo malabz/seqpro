@@ -9,12 +9,11 @@
 namespace {
 
 void PrintUsage(std::ostream& output_stream) {
-  output_stream
-      << "SeqPro " << seqpro::kVersionString << "\n"
-      << "Usage:\n"
-      << "  seqpro-index build FASTA [-o FAI] [--force] [--no-metadata]\n"
-      << "  seqpro-index validate FASTA [-i FAI] [--full] [--require-metadata]\n"
-      << "  seqpro-index info FASTA [-i FAI]\n";
+  output_stream << "SeqPro " << seqpro::kVersionString << "\n"
+                << "Usage:\n"
+                << "  seqpro-index build FASTA [-o FAI] [--force] [--no-metadata]\n"
+                << "  seqpro-index validate FASTA [-i FAI] [--full] [--require-metadata]\n"
+                << "  seqpro-index info FASTA [-i FAI]\n";
 }
 
 std::string_view IndexOriginName(seqpro::FastaIndexOrigin index_origin) {
@@ -24,8 +23,8 @@ std::string_view IndexOriginName(seqpro::FastaIndexOrigin index_origin) {
   return "external_standard_fai";
 }
 
-std::string_view VerificationStatusName(seqpro::IndexVerificationStatus status) {
-  switch (status) {
+std::string_view VerificationStatusName(seqpro::IndexVerificationStatus verification_status) {
+  switch (verification_status) {
     case seqpro::IndexVerificationStatus::kStructureValidated:
       return "structure_validated";
     case seqpro::IndexVerificationStatus::kMetadataValidated:
@@ -62,16 +61,14 @@ int ExitCodeForError(seqpro::ErrorCode error_code) {
 
 std::filesystem::path RequireFastaPath(int argument_count, char** argument_values) {
   if (argument_count < 3 || argument_values[2][0] == '-') {
-    throw seqpro::SeqProError(seqpro::ErrorCode::kInvalidArgument,
-                              "a FASTA path is required");
+    throw seqpro::SeqProError(seqpro::ErrorCode::kInvalidArgument, "a FASTA path is required");
   }
   return argument_values[2];
 }
 
 int BuildCommand(int argument_count, char** argument_values) {
-  const std::filesystem::path fasta_path =
-      RequireFastaPath(argument_count, argument_values);
-  seqpro::FastaIndexBuildOptions options;
+  const std::filesystem::path fasta_path = RequireFastaPath(argument_count, argument_values);
+  seqpro::FastaIndexBuildOptions build_options;
   for (int argument_index = 3; argument_index < argument_count; ++argument_index) {
     const std::string_view argument(argument_values[argument_index]);
     if (argument == "-o") {
@@ -79,31 +76,30 @@ int BuildCommand(int argument_count, char** argument_values) {
         throw seqpro::SeqProError(seqpro::ErrorCode::kInvalidArgument,
                                   "-o requires a FASTA index path");
       }
-      options.fasta_index_path = argument_values[argument_index];
+      build_options.fasta_index_path = argument_values[argument_index];
     } else if (argument == "--force") {
-      options.force_rebuild = true;
+      build_options.force_rebuild = true;
     } else if (argument == "--no-metadata") {
-      options.write_seqpro_metadata = false;
+      build_options.write_seqpro_metadata = false;
     } else {
       throw seqpro::SeqProError(seqpro::ErrorCode::kInvalidArgument,
                                 "unknown build option: " + std::string(argument));
     }
   }
 
-  const seqpro::FastaIndexBuildReport report =
-      seqpro::BuildFastaIndex(fasta_path, options);
-  std::cout << "action\t" << BuildActionName(report.build_action) << '\n'
-            << "fasta\t" << report.fasta_path.string() << '\n'
-            << "fasta_index\t" << report.fasta_index_path.string() << '\n'
-            << "metadata\t" << report.metadata_path.string() << '\n'
-            << "sequence_count\t" << report.sequence_count << '\n'
-            << "total_bases\t" << report.total_base_count << '\n';
+  const seqpro::FastaIndexBuildReport index_build_report =
+      seqpro::BuildFastaIndex(fasta_path, build_options);
+  std::cout << "action\t" << BuildActionName(index_build_report.build_action) << '\n'
+            << "fasta\t" << index_build_report.fasta_path.string() << '\n'
+            << "fasta_index\t" << index_build_report.fasta_index_path.string() << '\n'
+            << "metadata\t" << index_build_report.metadata_path.string() << '\n'
+            << "sequence_count\t" << index_build_report.sequence_count << '\n'
+            << "total_bases\t" << index_build_report.total_base_count << '\n';
   return 0;
 }
 
 int ValidateCommand(int argument_count, char** argument_values) {
-  const std::filesystem::path fasta_path =
-      RequireFastaPath(argument_count, argument_values);
+  const std::filesystem::path fasta_path = RequireFastaPath(argument_count, argument_values);
   std::filesystem::path fasta_index_path;
   seqpro::IndexVerificationMode verification_mode = seqpro::IndexVerificationMode::kFast;
   bool require_seqpro_metadata = false;
@@ -125,28 +121,27 @@ int ValidateCommand(int argument_count, char** argument_values) {
     }
   }
 
-  const seqpro::FastaIndexValidationReport report =
+  const seqpro::FastaIndexValidationReport index_validation_report =
       seqpro::ValidateFastaIndex(fasta_path, fasta_index_path, verification_mode);
-  if (require_seqpro_metadata && !report.has_seqpro_metadata) {
+  if (require_seqpro_metadata && !index_validation_report.has_seqpro_metadata) {
     throw seqpro::SeqProError(seqpro::ErrorCode::kStaleFastaIndex,
                               "SeqPro metadata is required but missing");
   }
-  std::cout << "index_origin\t" << IndexOriginName(report.index_origin) << '\n'
-            << "verification_status\t" << VerificationStatusName(report.verification_status)
-            << '\n'
-            << "sequence_count\t" << report.sequence_count << '\n'
-            << "total_bases\t" << report.total_base_count << '\n'
-            << "has_seqpro_metadata\t" << (report.has_seqpro_metadata ? "true" : "false")
-            << '\n'
+  std::cout << "index_origin\t" << IndexOriginName(index_validation_report.index_origin) << '\n'
+            << "verification_status\t"
+            << VerificationStatusName(index_validation_report.verification_status) << '\n'
+            << "sequence_count\t" << index_validation_report.sequence_count << '\n'
+            << "total_bases\t" << index_validation_report.total_base_count << '\n'
+            << "has_seqpro_metadata\t"
+            << (index_validation_report.has_seqpro_metadata ? "true" : "false") << '\n'
             << "is_fasta_fingerprint_current\t"
-            << (report.is_fasta_fingerprint_current ? "true" : "false") << '\n';
+            << (index_validation_report.is_fasta_fingerprint_current ? "true" : "false") << '\n';
   return 0;
 }
 
 int InfoCommand(int argument_count, char** argument_values) {
-  const std::filesystem::path fasta_path =
-      RequireFastaPath(argument_count, argument_values);
-  seqpro::IndexedFastaOptions options;
+  const std::filesystem::path fasta_path = RequireFastaPath(argument_count, argument_values);
+  seqpro::IndexedFastaOptions open_options;
   for (int argument_index = 3; argument_index < argument_count; ++argument_index) {
     const std::string_view argument(argument_values[argument_index]);
     if (argument == "-i") {
@@ -154,14 +149,14 @@ int InfoCommand(int argument_count, char** argument_values) {
         throw seqpro::SeqProError(seqpro::ErrorCode::kInvalidArgument,
                                   "-i requires a FASTA index path");
       }
-      options.fasta_index_path = argument_values[argument_index];
+      open_options.fasta_index_path = argument_values[argument_index];
     } else {
       throw seqpro::SeqProError(seqpro::ErrorCode::kInvalidArgument,
                                 "unknown info option: " + std::string(argument));
     }
   }
 
-  const seqpro::IndexedFasta indexed_fasta = seqpro::IndexedFasta::Open(fasta_path, options);
+  const seqpro::IndexedFasta indexed_fasta = seqpro::IndexedFasta::Open(fasta_path, open_options);
   std::uint64_t total_base_count = 0;
   for (const seqpro::FastaIndexEntry& index_entry : indexed_fasta.fasta_index_entries()) {
     total_base_count += index_entry.sequence_length;
@@ -188,24 +183,24 @@ int main(int argument_count, char** argument_values) {
       PrintUsage(std::cerr);
       return 2;
     }
-    const std::string_view command(argument_values[1]);
-    if (command == "build") {
+    const std::string_view command_name(argument_values[1]);
+    if (command_name == "build") {
       return BuildCommand(argument_count, argument_values);
     }
-    if (command == "validate") {
+    if (command_name == "validate") {
       return ValidateCommand(argument_count, argument_values);
     }
-    if (command == "info") {
+    if (command_name == "info") {
       return InfoCommand(argument_count, argument_values);
     }
     PrintUsage(std::cerr);
-    std::cerr << "error: unknown command: " << command << '\n';
+    std::cerr << "error: unknown command: " << command_name << '\n';
     return 2;
-  } catch (const seqpro::SeqProError& error) {
-    std::cerr << "seqpro-index: " << error.what() << '\n';
-    return ExitCodeForError(error.error_code());
-  } catch (const std::exception& error) {
-    std::cerr << "seqpro-index: unexpected error: " << error.what() << '\n';
+  } catch (const seqpro::SeqProError& seqpro_error) {
+    std::cerr << "seqpro-index: " << seqpro_error.what() << '\n';
+    return ExitCodeForError(seqpro_error.error_code());
+  } catch (const std::exception& unexpected_error) {
+    std::cerr << "seqpro-index: unexpected error: " << unexpected_error.what() << '\n';
     return 4;
   }
 }

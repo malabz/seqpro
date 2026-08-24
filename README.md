@@ -1,37 +1,47 @@
 # SeqPro
 
-SeqPro 是一个 C++17 未压缩 FASTA 随机访问库。核心库创建或读取标准五列 FAI，并通过
-64 位 Linux/WSL 的只读 mmap 按需访问碱基。打开已有索引时不会扫描 FASTA 正文，也不会
-把完整序列加载到堆内存。
+[![Quality](https://github.com/malabz/seqpro/actions/workflows/quality.yml/badge.svg)](https://github.com/malabz/seqpro/actions/workflows/quality.yml)
 
-当前版本为 `0.2.0`。默认构建仍然只提供 v1 核心随机访问库。v0.2 新增的
-`SequenceTextLayout` 是默认关闭、独立编译和独立安装的高级组件，用于把选定序列的 active
-区间组织成后缀数组或 FM-index 输入文本。只需要 FASTA 随机访问的用户无需启用它。
+[简体中文](README.zh-CN.md)
 
-在 `0.x` 阶段，公共 API 会尽量保持源码兼容，但不承诺不同小版本共享库之间的稳定 ABI；
-升级后建议重新编译消费者。标准五列 FAI 的外部互操作格式不受这一限制。
+SeqPro is a C++17 library for indexed random access to uncompressed FASTA files. The core library
+creates or reads standard five-column FAI files and uses a read-only memory mapping to retrieve
+bases without loading complete sequences into heap memory. Opening an existing index scales with
+the number of FASTA records rather than the number of bases.
 
-## 环境
+SeqPro 0.2.0 is the first public release candidate. The default build provides only the general
+FASTA access library. An independent, opt-in `SequenceTextLayout` component can assemble selected
+active sequence runs into suffix-array or FM-index input text. Applications that only need indexed
+FASTA access do not build, install, or link that component.
 
-- 64 位 Linux 或 WSL。
-- GCC 9+，或 Clang 10+ 与相应 C++17 标准库。
-- CMake 3.20+。
-- 输入必须是未压缩、结构规范的 FASTA。
+## Supported environment
 
-## 构建
+- x86_64, 64-bit Linux or WSL.
+- GCC 9 or newer, or Clang 10 or newer with the system libstdc++ ABI.
+- CMake 3.20 or newer.
+- Uncompressed, structurally valid FASTA input.
+
+Patch releases in the 0.2.x line are intended to remain source- and binary-compatible when built
+for the same platform, compiler ABI, C++ runtime ABI, and build mode. Compatibility is not promised
+between different minor versions, different C++ runtime ABIs, or different
+`_GLIBCXX_USE_CXX11_ABI` configurations. Rebuild consumers when crossing those boundaries.
+
+## Build and test
 
 ```bash
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTING=ON \
   -DSEQPRO_BUILD_TOOLS=ON
+
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-SeqPro 不修改父工程的全局 C++ 标准、warning、构建类型或安装前缀。
+SeqPro does not overwrite a parent project's C++ standard, warning policy, build type, RPATH, or
+installation prefix.
 
-## 创建和验证索引
+## Build and validate an index
 
 ```bash
 build/seqpro-index build reference.fa
@@ -39,7 +49,7 @@ build/seqpro-index validate reference.fa --full
 build/seqpro-index info reference.fa
 ```
 
-默认生成：
+The default files are:
 
 ```text
 reference.fa
@@ -47,92 +57,40 @@ reference.fa.fai
 reference.fa.fai.seqpro.meta
 ```
 
-`.fai` 始终是 Samtools/HTSlib 可读的标准五列文件。`.seqpro.meta` 保存版本、文件大小、
-mtime、XXH3-128、记录数和总碱基数，不改变 FAI 格式。
+The `.fai` is always the standard Samtools/HTSlib-compatible five-column format. The optional
+`.seqpro.meta` sidecar records a versioned source fingerprint, file metadata, record count, and
+total base count without extending or changing the FAI.
 
-`build` 是显式写操作。`validate` 和 `IndexedFasta::Open()` 只读。已经存在但没有 sidecar
-的标准 FAI 可以直接打开；再次执行 `build` 会在完整验证后保留该 FAI 并补建 sidecar。
+`build` is an explicit write operation. `validate` and `IndexedFasta::Open()` are read-only. A
+valid external FAI without a SeqPro sidecar can be opened directly. Running `build` later validates
+and preserves that FAI before adding the sidecar.
 
-## CMake 引入
+## Link with CMake
 
-源码树方式：
+From a source tree:
 
 ```cmake
 add_subdirectory(path/to/seqpro)
 target_link_libraries(my_app PRIVATE SeqPro::seqpro)
 ```
 
-安装后：
+From an installation:
 
 ```cmake
 find_package(SeqPro 0.2 CONFIG REQUIRED)
 target_link_libraries(my_app PRIVATE SeqPro::seqpro)
 ```
 
-SeqPro 的公共 target 会为消费者声明 `cxx_std_17`，但不会设置全局
-`CMAKE_CXX_STANDARD`。
+The imported target declares the required `cxx_std_17` feature without setting the global
+`CMAKE_CXX_STANDARD`.
 
-## 可选 SequenceText 组件
-
-源码树中显式启用：
-
-```cmake
-set(SEQPRO_BUILD_SEQUENCE_TEXT ON)
-add_subdirectory(path/to/seqpro)
-target_link_libraries(my_app PRIVATE SeqPro::sequence_text)
-```
-
-FetchContent 方式同样在拉取前设置该选项：
-
-```cmake
-include(FetchContent)
-set(SEQPRO_BUILD_SEQUENCE_TEXT ON CACHE BOOL "" FORCE)
-FetchContent_Declare(SeqPro SOURCE_DIR /path/to/seqpro)
-FetchContent_MakeAvailable(SeqPro)
-target_link_libraries(my_app PRIVATE SeqPro::sequence_text)
-```
-
-安装包中显式请求：
-
-```cmake
-find_package(SeqPro 0.2 CONFIG REQUIRED COMPONENTS SequenceText)
-target_link_libraries(my_app PRIVATE SeqPro::sequence_text)
-```
-
-普通的 `find_package(SeqPro CONFIG REQUIRED)` 只定义 `SeqPro::seqpro`。如果安装时没有构建
-高级组件，请求 `COMPONENTS SequenceText` 会在 CMake 配置阶段失败。
-
-基本迭代流程：
-
-```cpp
-#include "seqpro/sequence_text_layout.h"
-
-seqpro::IndexedFasta fasta = seqpro::IndexedFasta::Open("reference.fa");
-seqpro::SequenceTextLayout layout(fasta);
-
-// 构造后已经 finalized，初始 generation 为 1。
-seqpro::MaterializedSequenceText text = layout.Materialize();
-
-// 将同一轮索引结果一次性转换为原始坐标排除区间。
-layout.ExcludeTextIntervals(text.layout_generation, {{1000, 250}, {5000, 100}});
-layout.Finalize();
-
-seqpro::MaterializedSequenceText next_text = layout.Materialize();
-```
-
-每个非空 active run 后都有一个字节 `0x01`，全文最后有唯一的 `0x00`。因此
-`MaterializedSequenceText::bytes` 必须按 `size()` 使用，不能传给 `strlen()`。separator 和
-terminator 通过 `SequenceTextLocation` 的 tagged variant 返回，不会被解释成碱基坐标。
-
-区间修改后，除状态访问和继续修改外，查询会要求先显式调用 `Finalize()`。修改和
-`Finalize()` 由调用方单线程串行执行；成功定案后，同一个 layout 的 const 坐标查询和文本
-读取可以由多个线程无锁并发。完整契约见
-[docs/sequence_text_layout.md](docs/sequence_text_layout.md)。
-
-## 基本读取
+## Random-access example
 
 ```cpp
 #include <iostream>
+#include <string>
+#include <vector>
+
 #include "seqpro/seqpro.h"
 
 int main() {
@@ -141,64 +99,145 @@ int main() {
   const seqpro::FastaSequenceView chromosome =
       reference.SequenceByName("chr1");
 
-  const char base = chromosome.ReadBase(42);
-  const std::string region = chromosome.ReadSubsequence(1000, 500);
-  std::cout << base << '\n' << region << '\n';
+  const char sequence_base = chromosome.ReadBase(42);
+  const std::string sequence_region =
+      chromosome.ReadSubsequence(1'000, 500);
+
+  std::vector<char> destination_buffer(1'024);
+  chromosome.CopySubsequenceTo(
+      1'000, destination_buffer.data(), destination_buffer.size());
+  chromosome.WriteSubsequenceTo(1'000, 1'000'000, std::cout);
+
+  std::cout << sequence_base << '\n' << sequence_region << '\n';
 }
 ```
 
-对于大区间，使用调用方缓冲区或流式接口，避免返回字符串分配：
+`SubsequenceChunks()` exposes physically contiguous `std::string_view` spans that point directly
+into the mapping and exclude FASTA line endings:
 
 ```cpp
-std::vector<char> destination(1024);
-chromosome.CopySubsequenceTo(1000, destination.data(), destination.size());
-chromosome.WriteSubsequenceTo(1000, 1'000'000, std::cout);
+for (const seqpro::SequenceChunk sequence_chunk :
+     chromosome.SubsequenceChunks(1'000, 500)) {
+  Consume(sequence_chunk.sequence_start_position,
+          sequence_chunk.sequence_bases);
+}
 ```
 
-`SubsequenceChunks()` 返回不含 FASTA 换行符的 mmap `std::string_view` 块。chunk 不复制
-碱基，但独立保存的 `string_view` 不能超过其 reader、sequence view 或 chunk range 的
-生命周期。
+The chunk range keeps the mapping alive. A detached `sequence_bases` view does not independently
+extend that lifetime.
 
-## 坐标和错误语义
+## Coordinate and error semantics
 
-所有序列坐标为 0-based 半开区间 `[start, start + length)`：
+Sequence positions are zero-based and intervals are half-open:
 
-- `ReadBase(position)` 要求 `position < sequence_length()`。
-- 空区间允许位于序列末端。
-- 越界一律抛出 `seqpro::SeqProError`，不静默截断。
-- 缺失名称和非法 ID 抛出 `kSequenceNotFound`。
-- 返回字节保持 FASTA 原始大小写和字符，不自动清洗或转成 `N`。
-
-## mmap 与内存
-
-映射整个文件不等于读取整个文件。mmap 首先保留虚拟地址范围；实际访问的页面才会进入
-RSS/page cache。因此：
-
-- VIRT 可以接近 FASTA 文件大小，这是正常现象。
-- 打开时的常驻堆内存只随序列记录数和名称总长度增长。
-- 已访问页面进入 RSS 是正常的操作系统缓存行为。
-- 64 位地址空间是 SeqPro 的明确要求。
-
-在 WSL 中，大型 Linux 工作负载放在 WSL Linux 文件系统通常比 `/mnt/c` 或 `/mnt/d`
-更快；SeqPro 同时支持 Windows 挂载路径，并对索引发布后的可见性进行有限重试。
-
-可选的微基准只在显式设置 `-DSEQPRO_BUILD_BENCHMARKS=ON` 时构建。使用方式为：
-
-```bash
-build/seqpro-benchmark reference.fa chr1 1000000
+```text
+[sequence_start_position,
+ sequence_start_position + subsequence_length)
 ```
 
-它不会由 CTest 自动运行，也不承诺脱离硬件和文件系统环境的绝对 QPS。
+- `ReadBase(position)` requires `position < sequence_length()`.
+- A zero-length interval may start exactly at the sequence end.
+- Requests are never silently truncated.
+- Invalid IDs, missing names, malformed input, stale indexes, overflow, and out-of-range requests
+  raise `seqpro::SeqProError` with a specific `ErrorCode`.
+- Returned bytes preserve FASTA case and symbols; SeqPro does not normalize alphabets or replace
+  characters with `N`.
 
-## 线程安全和文件生命周期
+## Optional SequenceText component
 
-打开完成后，reader、索引和映射均不可变。同一个 `IndexedFasta` 或
-`FastaSequenceView` 可以被多个线程同时读取，库内部不加查询锁，也不创建线程池。
+Enable the extension explicitly in a source-tree or FetchContent build:
 
-`FastaSequenceView` 和 `SequenceChunkRange` 共享映射生命周期；原 reader 销毁后 view
-仍可读取。reader 存活期间不得原地修改、替换或截断 FASTA/FAI/sidecar。需要更新文件时，
-先销毁所有 reader，再显式重建并重新打开。
+```cmake
+set(SEQPRO_BUILD_SEQUENCE_TEXT ON)
+add_subdirectory(path/to/seqpro)
+target_link_libraries(my_app PRIVATE SeqPro::sequence_text)
+```
 
-## 文件格式契约
+Request it explicitly from an installation:
 
-完整规则见 [docs/fai_contract.md](docs/fai_contract.md)。
+```cmake
+find_package(SeqPro 0.2 CONFIG REQUIRED COMPONENTS SequenceText)
+target_link_libraries(my_app PRIVATE SeqPro::sequence_text)
+```
+
+A normal `find_package(SeqPro CONFIG REQUIRED)` defines only `SeqPro::seqpro`. If the installed
+package was built without the optional component, requesting `SequenceText` fails during CMake
+configuration.
+
+Typical iterative use:
+
+```cpp
+#include "seqpro/sequence_text_layout.h"
+
+seqpro::IndexedFasta indexed_fasta =
+    seqpro::IndexedFasta::Open("reference.fa");
+seqpro::SequenceTextLayout sequence_text_layout(indexed_fasta);
+
+// Construction creates generation 1 with no excluded intervals.
+seqpro::MaterializedSequenceText materialized_text =
+    sequence_text_layout.Materialize();
+
+sequence_text_layout.ExcludeTextIntervals(
+    materialized_text.layout_generation,
+    {{1'000, 250}, {5'000, 100}});
+sequence_text_layout.Finalize();
+
+seqpro::MaterializedSequenceText next_generation_text =
+    sequence_text_layout.Materialize();
+```
+
+Every non-empty active run is followed by `0x01`; one `0x00` terminates the complete text.
+`MaterializedSequenceText::sequence_text_bytes` therefore contains an embedded final NUL and must
+always be consumed with `size()`, never `strlen()`. Tagged locations distinguish bases,
+separators, and the terminator.
+
+Mutation and `Finalize()` are single-threaded phases. After successful finalization, const
+coordinate queries and text access on one layout are lock-free and may run concurrently. See the
+[SequenceText contract](docs/sequence_text_layout.md) for the complete state, generation, and
+coordinate rules.
+
+## mmap, memory, and concurrency
+
+Mapping a file does not read the complete file into RAM. The mapping first reserves virtual address
+space; pages normally enter resident memory or the page cache when accessed. Consequently:
+
+- VIRT may approach the FASTA file size and is not the heap footprint.
+- Heap use after opening grows with record count and total sequence-name length, not total bases.
+- Accessed pages appearing in RSS are normal operating-system cache behavior.
+- A 64-bit address space is an explicit requirement.
+
+`IndexedFasta`, `FastaSequenceView`, and finalized SequenceText queries are immutable and do not
+use hidden worker threads or query locks. Sequence views and chunk ranges share ownership of the
+mapping. Do not modify, replace, or truncate the FASTA, FAI, or metadata while any corresponding
+reader or view remains alive.
+
+On WSL, large Linux workloads are often faster on the WSL Linux filesystem than under `/mnt/c` or
+`/mnt/d`; both layouts are supported.
+
+## Optional project targets
+
+All non-core targets are opt-in except the top-level command-line tool:
+
+| CMake option | Default | Purpose |
+|---|---:|---|
+| `SEQPRO_BUILD_TOOLS` | top-level ON | Build `seqpro-index` |
+| `SEQPRO_BUILD_SEQUENCE_TEXT` | OFF | Build the independent extension |
+| `SEQPRO_BUILD_EXAMPLES` | OFF | Build examples |
+| `SEQPRO_BUILD_BENCHMARKS` | OFF | Build microbenchmarks |
+| `SEQPRO_BUILD_DOCUMENTATION` | OFF | Build strict Doxygen HTML |
+| `SEQPRO_BUILD_FUZZERS` | OFF | Build non-installed Clang libFuzzer targets |
+| `SEQPRO_WARNINGS_AS_ERRORS` | OFF | Promote SeqPro-owned warnings to errors |
+
+The benchmark targets are never run by CTest and make no hardware-independent throughput promise.
+
+## Documentation
+
+- [FASTA, FAI, and metadata contract](docs/fai_contract.md)
+- [SequenceText byte-layout and coordinate contract](docs/sequence_text_layout.md)
+- [Contributing and compatibility policy](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Release-candidate and release procedure](docs/releasing.md)
+- [Changelog](CHANGELOG.md)
+
+SeqPro is available under the MIT License. The bundled xxHash implementation retains its
+BSD-2-Clause license; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

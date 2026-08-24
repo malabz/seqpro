@@ -231,24 +231,29 @@ RaMAx 兼容层或自动迁移。
 
 ## 14. 实施状态
 
-截至 2026-08-24，里程碑 A-E 已完成，v0.2.0 发布候选所需的代码、组件隔离、文档和本地
-验证已经落地：
+截至 2026-08-24，里程碑 A-E 的功能实现与首次公开发布候选工程加固已在工作树中完成：
 
-- `SequenceTextLayout` 公共 API、PIMPL、generation 状态机、紧凑选择索引、active run 和
-  三套坐标转换已实现；
-- 单字节、精确缓冲区、流式输出和显式物化四条文本访问路径已实现；
-- 3000 组随机区间布局、全部生成位置、跨 run 拒绝、多轮清空/重建和 1/2/8/32 线程共享
-  查询已与朴素 oracle 比较；
-- extension OFF/ON、静态/共享、C++17/C++20、add_subdirectory、install-tree component、
-  core-only 缺失组件和 Samtools 回归均通过；
-- GCC 13 的 Debug/Release、`-Werror`、ASan+UBSan 和 TSan 通过；沙箱不支持 LeakSanitizer
-  的 ptrace 初始化，因此 ASan 复验使用 `ASAN_OPTIONS=detect_leaks=0`，仍保留地址错误和
-  UBSan 检查；
-- Visual Studio LLVM 19.1.1 的 clang-format dry-run 通过；clang-tidy 对扩展实现和公共扩展
-  头没有项目内诊断；
-- 核心 v1 实现和除版本头外的公共头文件保持原始哈希，核心共享库不导出或依赖 v2 符号；
-  扩展共享库单向依赖 `libseqpro.so.0`；
+- `SequenceTextLayout` 公共 API、PIMPL、generation 状态机、紧凑选择索引、active run、
+  三套坐标转换及四条文本访问路径均已实现；
+- 公共字段已冻结为带单位和坐标语义的名称，例如 `sequence_start_position`、
+  `text_start_position` 和 `sequence_text_bytes`，核心、扩展、工具、示例、benchmark 与测试
+  中的内部变量也完成领域化命名；
+- `Finalize()` 的 active-run 容量估算只累计一次排除区间数量，并使用 checked `size_t`
+  算术；随机 oracle、generation、跨 run 拒绝及 1/2/8/32 线程共享查询测试均通过；
+- SequenceText 仍为默认关闭的独立 component；extension OFF/ON、静态/共享、C++17/C++20、
+  add_subdirectory、离线 FetchContent、安装、安装前缀迁移、缺失组件和 Samtools 互操作均有
+  自动门禁；安装后的扩展通过 `$ORIGIN` 解析同目录核心库，不修改父工程的全局 RPATH；
+- 项目版本只有 CMake `0.2.0` 一个来源；核心与扩展 SONAME 分别为 `libseqpro.so.0.2` 和
+  `libseqpro_sequence_text.so.0.2`，CMake package 使用 `SameMinorVersion`；
+- 共享库采用独立 version script、`--no-undefined`、RELRO/NOW 和 stack protector；核心与扩展
+  的符号边界、跨 DSO `SeqProError` 捕获及 libabigail v0.2.0 ABI 基线均已验证；
+- 本地最终验证已覆盖 GCC/Clang 构建、全量静态与共享 CTest、ASan/UBSan、TSan、clang-tidy、
+  GCC analyzer、严格 Doxygen、clang-format、actionlint、ShellCheck 和四个 fuzzer 的短烟雾
+  运行；沙箱限制使本地 LSan 使用 `detect_leaks=0`，CI 仍固定使用 `detect_leaks=1`；
+- GitHub Actions 已提供质量、手动 fuzz 和发布候选工作流；发布候选工作流会执行每个 fuzzer
+  至少 300 秒，并从明确 commit 生成和验证可复现源码包及 API 文档资产；
 - 示例和 benchmark 目标已编译，但 benchmark 和大型真实基因组实验没有执行。
 
-当前没有执行 commit、push、版本标签或 RaMAx 修改。正式发布标签和真实数据性能基线继续
-等待用户单独授权。
+当前没有执行 commit、push、版本标签、GitHub Release 或任何下游项目修改。由于源码包脚本
+按设计拒绝脏工作树，完整的 300 秒 fuzz 和 commit 归档演练需要在用户授权提交后由手动发布
+候选工作流执行；正式标签和 Release 仍需单独授权。

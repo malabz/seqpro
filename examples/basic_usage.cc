@@ -9,17 +9,16 @@ int main(int argument_count, char** argument_values) {
   }
 
   try {
-    const seqpro::IndexedFasta reference = seqpro::IndexedFasta::Open(argument_values[1]);
-    const seqpro::FastaSequenceView sequence =
-        reference.SequenceByName(argument_values[2]);
-    std::cout << sequence.sequence_name() << '\t' << sequence.sequence_length() << '\n';
-    if (sequence.sequence_length() != 0) {
-      std::cout << "first_base\t" << sequence.ReadBase(0) << '\n';
+    const seqpro::IndexedFasta indexed_fasta = seqpro::IndexedFasta::Open(argument_values[1]);
+    const seqpro::FastaSequenceView sequence_view =
+        indexed_fasta.SequenceByName(argument_values[2]);
+    std::cout << sequence_view.sequence_name() << '\t' << sequence_view.sequence_length() << '\n';
+    if (sequence_view.sequence_length() != 0) {
+      std::cout << "first_base\t" << sequence_view.ReadBase(0) << '\n';
     }
     return 0;
-  } catch (const seqpro::SeqProError& error) {
-    std::cerr << error.what() << '\n';
+  } catch (const seqpro::SeqProError& seqpro_error) {
+    std::cerr << seqpro_error.what() << '\n';
     return 1;
   }
 }
-

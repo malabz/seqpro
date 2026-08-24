@@ -27,31 +27,33 @@ int main(int argument_count, char** argument_values) {
       return EXIT_FAILURE;
     }
     const std::uint64_t lookup_count = std::stoull(argument_values[3]);
-    seqpro::SequenceTextLayout layout(indexed_fasta, {*sequence_id});
+    seqpro::SequenceTextLayout sequence_text_layout(indexed_fasta, {*sequence_id});
 
-    const auto materialize_start = std::chrono::steady_clock::now();
-    const seqpro::MaterializedSequenceText text = layout.Materialize();
-    const auto materialize_end = std::chrono::steady_clock::now();
+    const auto materialize_start_time = std::chrono::steady_clock::now();
+    const seqpro::MaterializedSequenceText materialized_text = sequence_text_layout.Materialize();
+    const auto materialize_end_time = std::chrono::steady_clock::now();
 
-    std::uint64_t checksum = 0;
-    const auto lookup_start = std::chrono::steady_clock::now();
+    std::uint64_t lookup_checksum = 0;
+    const auto lookup_start_time = std::chrono::steady_clock::now();
     for (std::uint64_t lookup_index = 0; lookup_index < lookup_count; ++lookup_index) {
-      const seqpro::SequenceTextPosition text_position = lookup_index % layout.text_size();
-      checksum += layout.ReadTextByte(text_position);
+      const seqpro::SequenceTextPosition text_position =
+          lookup_index % sequence_text_layout.text_size();
+      lookup_checksum += sequence_text_layout.ReadTextByte(text_position);
     }
-    const auto lookup_end = std::chrono::steady_clock::now();
+    const auto lookup_end_time = std::chrono::steady_clock::now();
 
-    const auto materialize_milliseconds =
-        std::chrono::duration_cast<std::chrono::milliseconds>(materialize_end - materialize_start)
-            .count();
+    const auto materialize_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                              materialize_end_time - materialize_start_time)
+                                              .count();
     const auto lookup_milliseconds =
-        std::chrono::duration_cast<std::chrono::milliseconds>(lookup_end - lookup_start).count();
-    std::cout << "text_bytes=" << text.bytes.size()
+        std::chrono::duration_cast<std::chrono::milliseconds>(lookup_end_time - lookup_start_time)
+            .count();
+    std::cout << "text_bytes=" << materialized_text.sequence_text_bytes.size()
               << " materialize_ms=" << materialize_milliseconds << " lookups=" << lookup_count
-              << " lookup_ms=" << lookup_milliseconds << " checksum=" << checksum << '\n';
+              << " lookup_ms=" << lookup_milliseconds << " checksum=" << lookup_checksum << '\n';
     return EXIT_SUCCESS;
-  } catch (const std::exception& error) {
-    std::cerr << "sequence text benchmark failed: " << error.what() << '\n';
+  } catch (const std::exception& benchmark_error) {
+    std::cerr << "sequence text benchmark failed: " << benchmark_error.what() << '\n';
     return EXIT_FAILURE;
   }
 }

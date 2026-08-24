@@ -14,23 +14,23 @@ int main(int argument_count, char** argument_values) {
 
   try {
     const seqpro::IndexedFasta indexed_fasta = seqpro::IndexedFasta::Open(argument_values[1]);
-    seqpro::SequenceTextLayout layout(indexed_fasta);
-    const seqpro::MaterializedSequenceText text = layout.Materialize();
+    seqpro::SequenceTextLayout sequence_text_layout(indexed_fasta);
+    const seqpro::MaterializedSequenceText materialized_text = sequence_text_layout.Materialize();
 
-    std::cout << "generation: " << text.layout_generation << '\n'
-              << "selected sequences: " << layout.sequence_order().size() << '\n'
-              << "active runs: " << layout.active_run_count() << '\n'
-              << "text bytes: " << text.bytes.size() << '\n';
+    std::cout << "generation: " << materialized_text.layout_generation << '\n'
+              << "selected sequences: " << sequence_text_layout.sequence_order().size() << '\n'
+              << "active runs: " << sequence_text_layout.active_run_count() << '\n'
+              << "text bytes: " << materialized_text.sequence_text_bytes.size() << '\n';
 
     const seqpro::SequenceTextLocation last_location =
-        layout.LocateTextPosition(layout.text_size() - 1U);
+        sequence_text_layout.LocateTextPosition(sequence_text_layout.text_size() - 1U);
     if (!std::holds_alternative<seqpro::SequenceTextTerminatorLocation>(last_location)) {
       std::cerr << "the final text byte is not a terminator\n";
       return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
-  } catch (const std::exception& error) {
-    std::cerr << "sequence text example failed: " << error.what() << '\n';
+  } catch (const std::exception& example_error) {
+    std::cerr << "sequence text example failed: " << example_error.what() << '\n';
     return EXIT_FAILURE;
   }
 }

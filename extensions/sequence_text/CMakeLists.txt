@@ -20,23 +20,25 @@ set_target_properties(seqpro_sequence_text PROPERTIES
   CXX_EXTENSIONS OFF
   CXX_VISIBILITY_PRESET hidden
   EXPORT_NAME sequence_text
+  INSTALL_RPATH "$ORIGIN"
   POSITION_INDEPENDENT_CODE YES
-  SOVERSION ${PROJECT_VERSION_MAJOR}
+  SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
   VERSION ${PROJECT_VERSION}
   VISIBILITY_INLINES_HIDDEN YES
 )
-target_compile_options(seqpro_sequence_text PRIVATE
-  -Wall
-  -Wextra
-  -Wpedantic
-  -Wconversion
-  -Wsign-conversion
-)
+seqpro_configure_owned_cxx_target(seqpro_sequence_text)
 
-if(SEQPRO_ENABLE_CLANG_TIDY)
-  set_target_properties(
-    seqpro_sequence_text
-    PROPERTIES CXX_CLANG_TIDY "${SEQPRO_CLANG_TIDY_EXECUTABLE}"
+if(BUILD_SHARED_LIBS)
+  target_link_options(seqpro_sequence_text PRIVATE
+    "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/cmake/seqpro_sequence_text.map"
+    "LINKER:--no-undefined"
+    "LINKER:-z,relro"
+    "LINKER:-z,now"
+  )
+  set_property(
+    TARGET seqpro_sequence_text
+    APPEND PROPERTY LINK_DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/seqpro_sequence_text.map"
   )
 endif()
 
@@ -50,17 +52,28 @@ if(BUILD_TESTING)
     seqpro-sequence-text-tests
     PRIVATE SeqPro::sequence_text Threads::Threads
   )
-  target_compile_features(seqpro-sequence-text-tests PRIVATE cxx_std_17)
-  set_target_properties(seqpro-sequence-text-tests PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-  )
-  target_compile_options(
-    seqpro-sequence-text-tests
-    PRIVATE -Wall -Wextra -Wpedantic
-  )
+  seqpro_configure_owned_cxx_target(seqpro-sequence-text-tests)
   add_test(NAME seqpro.sequence_text.unit COMMAND seqpro-sequence-text-tests)
+
+  if(BUILD_SHARED_LIBS)
+    add_executable(
+      seqpro-sequence-text-cross-dso-error-test
+      tests/cross_dso_error_test.cc
+    )
+    target_link_libraries(
+      seqpro-sequence-text-cross-dso-error-test
+      PRIVATE SeqPro::sequence_text
+    )
+    seqpro_configure_owned_cxx_target(
+      seqpro-sequence-text-cross-dso-error-test
+    )
+    add_test(
+      NAME seqpro.sequence_text.cross_dso_error
+      COMMAND seqpro-sequence-text-cross-dso-error-test
+        ${PROJECT_SOURCE_DIR}/tests/fixtures/interop.fa
+        ${PROJECT_SOURCE_DIR}/tests/fixtures/interop.fa.fai.expected
+    )
+  endif()
 
   if(SEQPRO_IS_TOP_LEVEL)
     add_test(
@@ -94,16 +107,7 @@ if(SEQPRO_BUILD_EXAMPLES)
     seqpro-sequence-text-example
     PRIVATE SeqPro::sequence_text
   )
-  target_compile_features(seqpro-sequence-text-example PRIVATE cxx_std_17)
-  set_target_properties(seqpro-sequence-text-example PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-  )
-  target_compile_options(
-    seqpro-sequence-text-example
-    PRIVATE -Wall -Wextra -Wpedantic
-  )
+  seqpro_configure_owned_cxx_target(seqpro-sequence-text-example)
 endif()
 
 if(SEQPRO_BUILD_BENCHMARKS)
@@ -115,16 +119,7 @@ if(SEQPRO_BUILD_BENCHMARKS)
     seqpro-sequence-text-benchmark
     PRIVATE SeqPro::sequence_text
   )
-  target_compile_features(seqpro-sequence-text-benchmark PRIVATE cxx_std_17)
-  set_target_properties(seqpro-sequence-text-benchmark PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-  )
-  target_compile_options(
-    seqpro-sequence-text-benchmark
-    PRIVATE -Wall -Wextra -Wpedantic
-  )
+  seqpro_configure_owned_cxx_target(seqpro-sequence-text-benchmark)
 endif()
 
 install(TARGETS seqpro_sequence_text
@@ -142,8 +137,4 @@ install(EXPORT SeqProSequenceTextTargets
   FILE SeqProSequenceTextTargets.cmake
   NAMESPACE SeqPro::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SeqPro
-)
-install(
-  FILES ${PROJECT_SOURCE_DIR}/docs/sequence_text_layout.md
-  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/SeqPro/docs
 )

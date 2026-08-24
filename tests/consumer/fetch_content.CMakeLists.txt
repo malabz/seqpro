@@ -1,0 +1,29 @@
+cmake_minimum_required(VERSION 3.20)
+project(SeqProOfflineFetchContentConsumer LANGUAGES CXX)
+
+if(NOT DEFINED SEQPRO_SOURCE_DIR)
+  message(FATAL_ERROR "SEQPRO_SOURCE_DIR is required")
+endif()
+
+include(FetchContent)
+set(FETCHCONTENT_FULLY_DISCONNECTED ON)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(SEQPRO_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(SEQPRO_BUILD_SEQUENCE_TEXT OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(SeqPro SOURCE_DIR "${SEQPRO_SOURCE_DIR}")
+FetchContent_MakeAvailable(SeqPro)
+
+if(NOT TARGET SeqPro::seqpro)
+  message(FATAL_ERROR "Offline FetchContent did not define SeqPro::seqpro")
+endif()
+if(TARGET SeqPro::sequence_text)
+  message(FATAL_ERROR "Core-only FetchContent unexpectedly defined SeqPro::sequence_text")
+endif()
+
+add_executable(seqpro-fetch-content-consumer "${SEQPRO_SOURCE_DIR}/tests/consumer/main.cc")
+target_link_libraries(seqpro-fetch-content-consumer PRIVATE SeqPro::seqpro)
+target_compile_features(seqpro-fetch-content-consumer PRIVATE cxx_std_17)
+
+add_executable(seqpro-fetch-content-consumer-cxx20 "${SEQPRO_SOURCE_DIR}/tests/consumer/main.cc")
+target_link_libraries(seqpro-fetch-content-consumer-cxx20 PRIVATE SeqPro::seqpro)
+target_compile_features(seqpro-fetch-content-consumer-cxx20 PRIVATE cxx_std_20)

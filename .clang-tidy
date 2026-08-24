@@ -3,8 +3,9 @@ Checks: >
   bugprone-*,
   performance-*,
   portability-*,
+  readability-identifier-length,
   readability-identifier-naming
-WarningsAsErrors: ''
+WarningsAsErrors: '*'
 HeaderFilterRegex: >-
   (^|.*/)(include/seqpro|src|extensions/sequence_text/(include/seqpro|src))/
 CheckOptions:
@@ -16,11 +17,13 @@ CheckOptions:
     ^(iterator_category|value_type|difference_type|pointer|reference)$
   readability-identifier-naming.FunctionCase: CamelCase
   readability-identifier-naming.FunctionIgnoredRegexp: >-
-    ^(begin|end|empty|get|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
+    ^(begin|end|empty|get|error_code|mapped_bytes|file_size_bytes|fasta_path|fasta_index_path|validation_report|fasta_index_entries|sequence_id|sequence_name|sequence_length|fasta_index_entry|sequence_count|fasta_index_origin|index_verification_status|estimated_chunk_count|indexed_fasta|sequence_order|is_finalized|layout_generation|text_size|active_base_count|active_run_count)$
   readability-identifier-naming.MethodCase: CamelCase
   readability-identifier-naming.MethodIgnoredRegexp: >-
-    ^(begin|end|empty|get|indexed_fasta|is_finalized|layout_generation|sequence_order|text_size|.*_(bytes|code|count|entr.*|id|length|name|origin|path|report|status))$
+    ^(begin|end|empty|get|error_code|mapped_bytes|file_size_bytes|fasta_path|fasta_index_path|validation_report|fasta_index_entries|sequence_id|sequence_name|sequence_length|fasta_index_entry|sequence_count|fasta_index_origin|index_verification_status|estimated_chunk_count|indexed_fasta|sequence_order|is_finalized|layout_generation|text_size|active_base_count|active_run_count)$
   readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.VariableIgnoredRegexp: >-
+    ^k[A-Z][A-Za-z0-9]*$
   readability-identifier-naming.ParameterCase: lower_case
   readability-identifier-naming.PrivateMemberCase: lower_case
   readability-identifier-naming.PrivateMemberSuffix: _
@@ -38,9 +41,16 @@ CheckOptions:
   readability-identifier-naming.StaticConstantPrefix: k
   readability-identifier-naming.StaticConstexprVariableCase: CamelCase
   readability-identifier-naming.StaticConstexprVariablePrefix: k
-  readability-identifier-naming.LocalConstantCase: lower_case
-  readability-identifier-naming.LocalConstexprVariableCase: lower_case
+  readability-identifier-naming.LocalConstexprVariableCase: CamelCase
+  readability-identifier-naming.LocalConstexprVariablePrefix: k
   readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
   readability-identifier-naming.MacroDefinitionPrefix: SEQPRO_
   readability-identifier-naming.MacroDefinitionIgnoredRegexp: >-
     ^[A-Z][A-Z0-9_]*_H_$
+  readability-identifier-length.MinimumVariableNameLength: 3
+  readability-identifier-length.MinimumParameterNameLength: 3
+  readability-identifier-length.MinimumLoopCounterNameLength: 2
+  readability-identifier-length.IgnoredVariableNames: >-
+    ^(i|j|k)$
+  readability-identifier-length.IgnoredParameterNames: >-
+    ^(i|j|k)$

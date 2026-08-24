@@ -1,6 +1,8 @@
 /build/
 /install/
+/release-artifacts/
 *.fai
 *.seqpro.meta
+!fuzz/corpus/fasta_index/*.fai
 
 plan/SeqPro_library_development_plan.md

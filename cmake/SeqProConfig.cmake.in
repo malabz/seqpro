@@ -1,5 +1,7 @@
 @PACKAGE_INIT@
 
+set(SeqPro_VERSION "@PROJECT_VERSION@")
+
 include("${CMAKE_CURRENT_LIST_DIR}/SeqProTargets.cmake")
 
 set(SeqPro_SequenceText_FOUND FALSE)

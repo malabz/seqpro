@@ -53,3 +53,18 @@ if(NOT build_result EQUAL 0)
     "SequenceText find_package consumer build failed:\n"
     "${build_output}\n${build_error}")
 endif()
+
+foreach(consumer_executable IN ITEMS
+    seqpro-sequence-text-consumer
+    seqpro-sequence-text-consumer-cxx20)
+  execute_process(
+    COMMAND "${SEQPRO_TEST_ROOT}/build/${consumer_executable}"
+    RESULT_VARIABLE run_result
+    OUTPUT_VARIABLE run_output
+    ERROR_VARIABLE run_error)
+  if(NOT run_result EQUAL 0)
+    message(FATAL_ERROR
+      "SequenceText find_package consumer '${consumer_executable}' failed:\n"
+      "${run_output}\n${run_error}")
+  endif()
+endforeach()

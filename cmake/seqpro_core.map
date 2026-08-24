@@ -1,0 +1,10 @@
+SEQPRO_0.2 {
+  global:
+    _ZN6seqpro*;
+    _ZNK6seqpro*;
+    _ZTIN6seqpro11SeqProErrorE;
+    _ZTSN6seqpro11SeqProErrorE;
+    _ZTVN6seqpro11SeqProErrorE;
+  local:
+    *;
+};

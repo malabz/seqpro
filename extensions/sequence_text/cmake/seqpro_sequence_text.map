@@ -1,0 +1,7 @@
+SEQPRO_SEQUENCE_TEXT_0.2 {
+  global:
+    _ZN6seqpro18SequenceTextLayout*;
+    _ZNK6seqpro18SequenceTextLayout*;
+  local:
+    *;
+};

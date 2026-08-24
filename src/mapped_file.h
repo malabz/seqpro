@@ -34,4 +34,3 @@ class MappedFile {
 }  // namespace seqpro::internal
 
 #endif  // SEQPRO_SRC_MAPPED_FILE_H_
-

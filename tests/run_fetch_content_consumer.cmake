@@ -1,0 +1,42 @@
+if(NOT DEFINED SEQPRO_SOURCE_DIR OR NOT DEFINED SEQPRO_TEST_ROOT)
+  message(FATAL_ERROR "SeqPro offline FetchContent consumer paths are required")
+endif()
+
+file(REMOVE_RECURSE "${SEQPRO_TEST_ROOT}")
+file(MAKE_DIRECTORY "${SEQPRO_TEST_ROOT}/source")
+configure_file(
+  "${SEQPRO_SOURCE_DIR}/tests/consumer/fetch_content.CMakeLists.txt"
+  "${SEQPRO_TEST_ROOT}/source/CMakeLists.txt"
+  COPYONLY
+)
+
+execute_process(
+  COMMAND "${CMAKE_COMMAND}"
+          -S "${SEQPRO_TEST_ROOT}/source"
+          -B "${SEQPRO_TEST_ROOT}/build"
+          -G "${SEQPRO_GENERATOR}"
+          -DSEQPRO_SOURCE_DIR=${SEQPRO_SOURCE_DIR}
+          -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+  RESULT_VARIABLE configure_result
+  OUTPUT_VARIABLE configure_output
+  ERROR_VARIABLE configure_error
+)
+if(NOT configure_result EQUAL 0)
+  message(FATAL_ERROR
+    "offline FetchContent consumer configure failed:\n"
+    "${configure_output}\n${configure_error}"
+  )
+endif()
+
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" --build "${SEQPRO_TEST_ROOT}/build" --parallel
+  RESULT_VARIABLE build_result
+  OUTPUT_VARIABLE build_output
+  ERROR_VARIABLE build_error
+)
+if(NOT build_result EQUAL 0)
+  message(FATAL_ERROR
+    "offline FetchContent consumer build failed:\n"
+    "${build_output}\n${build_error}"
+  )
+endif()
